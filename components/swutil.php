@@ -1025,9 +1025,7 @@ function find_best_location_in_include_path( $path )
 		$found = find_file_to_include($newpath, $newpath, $reltoinclude);
 		$newpath = get_relative_path(str_replace ("/", "\\", realpath($newpath)), dirname(realpath($_SERVER["SCRIPT_FILENAME"])));
         if ( !$found )
-        {
             return false;
-        }
 	//}
 	return $newpath;
 }

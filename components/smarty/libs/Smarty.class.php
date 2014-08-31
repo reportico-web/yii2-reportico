@@ -1,6 +1,5 @@
 <?php namespace reportico\reportico\components;
 
-
 /**
  * Project:     Smarty: the PHP compiling template engine
  * File:        Smarty.class.php

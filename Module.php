@@ -119,6 +119,7 @@ class Module extends \yii\base\Module implements BootstrapInterface
     {
         //$component = \Yii::$app->get('reportico');
         $this->engine = new components\reportico();
+        components\set_up_reportico_session();
 
         //var_dump(Yii::$app->getUrlManager()->getUrlFormat());
         //if ( Yii::$app->getUrlManager()->getUrlFormat() == "get" )

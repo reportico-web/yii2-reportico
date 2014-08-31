@@ -1,5 +1,4 @@
 <?php namespace reportico\reportico\components;
-
 /*
  Reportico - PHP Reporting Tool
  Copyright (C) 2010-2014 Peter Deed
@@ -1876,6 +1875,16 @@ class reportico extends reportico_object
 			return $loggedon;
 		}
 
+        $matches=array();
+        if ( preg_match("/_drilldown(.*)/", reportico_namespace(), $matches) )
+        {
+            $parent_session = $matches[1];
+            if ( isset ( $_SESSION[$parent_session]['project_password'] ) )
+            {
+                set_reportico_session_param('project_password', $_SESSION[$parent_session]['project_password']);
+            }
+        }
+
 		if ( 
 			( !defined ('SW_PROJECT_PASSWORD') ) || 
 			( SW_PROJECT_PASSWORD == '' ) ||
@@ -3643,7 +3652,7 @@ class reportico extends reportico_object
         if ( !$mode )
             $mode = $this->get_execute_mode();
 
-		$old_error_handler = set_error_handler("\\reportico\\reportico\\components\ErrorHandler");
+		$old_error_handler = set_error_handler("\\reportico\\reportico\\components\\ErrorHandler");
         set_exception_handler("\\reportico\\reportico\\components\\ExceptionHandler");
 
         // If new session, we need to use initial project, report etc, otherwise ignore them
@@ -3890,7 +3899,7 @@ class reportico extends reportico_object
 				    $this->panels["MAIN"]->smarty->display($this->user_template.'_admin.tpl');
 				else
 				    $this->panels["MAIN"]->smarty->display('admin.tpl');
-		        $old_error_handler = set_error_handler("\\reportico\\reportico\components\ErrorHandler");
+		        $old_error_handler = set_error_handler("\\reportico\\reportico\\components\\ErrorHandler");
 				break;
 
 			case "MENU":

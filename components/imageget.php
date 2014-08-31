@@ -1,5 +1,4 @@
 <?php namespace reportico\reportico\components;
-use PDO;
 /*
  Reportico - PHP Reporting Tool
  Copyright (C) 2010-2014 Peter Deed
@@ -129,10 +128,8 @@ function set_project_environment()
 }
 }
 
-$reportico = new reportico();
-$reportico->set_project_environment();
-
-$datasource = new reportico_datasource($this->engine->external_connection = \Yii::$app->db->getMasterPdo());
+set_project_environment();
+$datasource = new reportico_datasource();
 $datasource->connect();
 
 $imagesql = $_REQUEST["imagesql"];
