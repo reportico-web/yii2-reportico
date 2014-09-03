@@ -21,8 +21,8 @@ class DefaultController extends Controller
 		$this->engine->initial_report = false;
 		$this->engine->clear_reportico_session = true;
 
-        $this->engine->bootstrap_styles = "3";
-        $this->engine->bootstrap_preloaded = false;
+        //$this->engine->bootstrap_styles = "3";
+        //$this->engine->bootstrap_preloaded = false;
 
 		if ( $this->partialRender )
         {

@@ -45,8 +45,8 @@ class ModeController extends Controller
         //$this->engine->Access_mode = "ONEPROJECT"; // Run single report, but with ability to access other reports
 
         $this->engine->initial_execute_mode = "EXECUTE";
-        $this->engine->initial_project = Yii::app()->request->getQuery("project");
-        $this->engine->initial_report = Yii::app()->request->getQuery("report");
+        $this->engine->initial_project = \Yii::$app->request->get("project");
+        $this->engine->initial_report = \Yii::$app->request->get("report");
         if ( !preg_match ( "/.xml$/", $this->engine->initial_report ) )
              $this->engine->initial_report .= ".xml" ;
 
@@ -63,7 +63,7 @@ class ModeController extends Controller
         $this->engine->access_mode = "ALLPROJECTS";  // Run single project menu, with access to other reports in other projects
         //$this->engine->Access_mode = "ONEPROJECT"; // Run single report, but with ability to access other reports
         $this->engine->initial_execute_mode = "MENU";
-        $this->engine->initial_project = Yii::app()->request->getQuery("project");
+        $this->engine->initial_project = \Yii::$app->request->get("project");
 
         $this->engine->clear_reportico_session = true;
 	    if ( $this->partialRender )

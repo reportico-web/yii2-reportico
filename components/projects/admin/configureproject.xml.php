@@ -192,10 +192,7 @@ else
 
 if ( !is_writeable ( $proj_dir ) )
 {
-   if ( ! chmod ( $proj_dir, "u+rwx") )
-   {
-        trigger_error ("Failed to make project directory $proj_dir writeable ");
-   }
+   trigger_error ("Project directory $proj_dir exists but is not writeable please correct this ");
 }
 
 if ( !file_exists ( $proj_conf ) && $_configure_mode == "DELETE" )
