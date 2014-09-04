@@ -22,7 +22,9 @@ class ModeController extends Controller
         return $this->renderPartial('index', array('engine' => $this->engine));
     }
 
-    // Run reportico in admin mode
+    /**
+     * Run Reportico admin page
+     */
     public function actionAdmin() {
         $this->enableCsrfValidation = false;
         $this->engine = $this->module->getReporticoEngine();
@@ -37,7 +39,9 @@ class ModeController extends Controller
             return $this->render('index', array('engine' => $this->engine));
     }
 
-    // Generate output for a single report
+    /**
+     * Generate singe report output
+     */
     public function actionExecute() {
         $this->engine = $this->module->getReporticoEngine();
         $this->engine->access_mode = "REPORTOUTPUT";  // Run single report, no "return button"
@@ -57,6 +61,9 @@ class ModeController extends Controller
             return $this->render('index', array('engine' => $this->engine));
     }
 
+    /**
+     * Generate output for a single report
+     */
     public function actionMenu() {
         $this->engine = $this->module->getReporticoEngine();
         $this->engine->access_mode = "ONEPROJECT";
@@ -72,6 +79,9 @@ class ModeController extends Controller
             return $this->render('index', array('engine' => $this->engine));
     }
 
+    /**
+     * Run report in criteria entry mode
+     */
     public function actionPrepare()
     {
         $this->engine = $this->module->getReporticoEngine();
