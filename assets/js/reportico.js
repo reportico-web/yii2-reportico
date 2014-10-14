@@ -167,8 +167,8 @@ reportico_jquery(document).on('click', '.swMiniMaintainSubmit', function(event)
 
     if ( reportico_ajax_mode == 1 )
         ajaxaction += "?r=reportico/reportico/ajax";
-    else
-        ajaxaction += "?r=reportico/reportico/ajax";
+    //else
+        //ajaxaction += "?r=reportico/reportico/ajax";
 
     var cont = this;
     reportico_jquery.ajax({
@@ -590,7 +590,10 @@ reportico_jquery(document).on('click', '.swPrintBox,.prepareAjaxExecute,#prepare
         var windowSizeArray = [ "width=200,height=200",
                   "width=300,height=400,scrollbars=yes" ];
 
-        var url = ajaxaction +"?" + params;
+        if ( reportico_ajax_mode == 1 )
+            var url = ajaxaction +"&" + params;
+        else
+            var url = ajaxaction +"?" + params;
         var windowName = "popUp";//reportico_jquery(this).prop("name");
         var windowSize = windowSizeArray[reportico_jquery(this).prop("rel")];
         window.open(url, windowName, "width=200,height=200");
