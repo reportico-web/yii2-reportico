@@ -32,4 +32,15 @@ Once the extension is installed, simply use it in your code by adding to the mod
                             'ajax' => 'reportico\reportico\controllers\AjaxController',
                         ]
             ],
-    ...```
+    ...
+```
+
+Quickstart and Documentation
+============================
+
+For the Yii2 Reportico quickstart guide go to :-
+http://www.reportico.org/yii2/web/index.php/site/index
+
+For the main reportico site go to :-
+http://www.reportico.org
+
