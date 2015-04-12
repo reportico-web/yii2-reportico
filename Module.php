@@ -103,6 +103,9 @@ class Module extends \yii\base\Module //implements BootstrapInterface
         $this->engine->charting_engine = $this->configGet("charting_engine");
         $this->engine->charting_engine_html = $this->configGet("charting_engine_html");
 
+        // Engine to use for PDF generation
+        $this->engine->pdf_engine = $this->configGet("pdf_engine");
+
         // Whether to turn on dynamic grids to provide searchable/sortable reports
         $this->engine->dynamic_grids = $this->configGet("dynamic_grids");
         $this->engine->dynamic_grids_sortable = $this->configGet("dynamic_grids_sortable");

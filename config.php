@@ -33,6 +33,9 @@
             // Jquery already included?
             'jquery_preloaded' => false,
 
+            // Engine to use for PDF reports ..  ( tcpdf or fpdf )
+            'pdf_engine' => "tcpdf",
+
             // Engine to use for charts .. 
             // HTML reports can use javascript charting, PDF reports must use PCHART
             'charting_engine' => "PCHART",
