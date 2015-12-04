@@ -48,6 +48,7 @@ if ( $_configure_mode != "DELETE" )
 {
     $configparams["SW_PROJECT_PASSWORD"] = $_criteria["projectpassword"]->get_criteria_value("VALUE", false);
     $configparams["SW_DB_TYPE"] = $_criteria["dbtype"]->get_criteria_value("VALUE", false);
+    $configparams["SW_DB_DRIVER"] = $configparams["SW_DB_TYPE"];
     $configparams["SW_DB_USER"] = "N/A";
     $configparams["SW_DB_PASSWORD"] = "N/A";
     $configparams["SW_DB_HOST"] = "N/A";
