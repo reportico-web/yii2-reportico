@@ -148,6 +148,9 @@ class Module extends \yii\base\Module //implements BootstrapInterface
 */
         $this->engine->external_connection = \Yii::$app->db->getMasterPdo();
 
+        // Pull in Yii CSRF request token
+        $this->engine->csrfToken = \Yii::$app->request->csrfToken;
+
         // Set Yii Database Access Config from configuration
         if ( !defined("SW_FRAMEWORK_DB_DRIVER") )
         {

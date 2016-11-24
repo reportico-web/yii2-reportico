@@ -75,7 +75,7 @@ if ( $_configure_mode != "DELETE" )
     $configparams["SW_OUTPUT_ENCODING"] = $_criteria["outputencoding"]->get_criteria_value("VALUE", false);
     $configparams["SW_LANGUAGE"] = $_criteria["language"]->get_criteria_value("VALUE", false);
 
-    if ( !$configparams["SW_DB_TYPE"] ) { trigger_error ( "Specify Database Type" ); return; }
+    if ( !$configparams["SW_DB_TYPE"] ) { trigger_error ( "Specify Database Type", E_USER_NOTICE ); return; }
 
     $test = new reportico_datasource();
     $test->driver = $configparams["SW_DB_TYPE"];
@@ -87,8 +87,9 @@ if ( $_configure_mode != "DELETE" )
         //if ( !$configparams["SW_DB_HOST"] ) { trigger_error ( "Specify Database Host" ); return; }
     //}
 
-    if ( !$configparams["SW_PROJECT"] ) { trigger_error ( "Specify Project Name" ); return; }
-    if ( !$configparams["SW_PROJECT_TITLE"] ) { trigger_error ( "Specify Project Title" ); return; }
+    if ( !$configparams["SW_PROJECT"] ) { trigger_error ( "Specify Project Name", E_USER_NOTICE ); return; }
+    if ( !$configparams["SW_PROJECT_TITLE"] ) { trigger_error ( "Specify Project Title", E_USER_NOTICE ); return; }
+    if ( !$configparams["SW_HTTP_BASEDIR"] ) { trigger_error ( "Specify Base URL", E_USER_NOTICE ); return; }
 
     $g_debug_mode = true;
     $g_no_sql = true;
@@ -125,7 +126,7 @@ if ( $_configure_mode != "DELETE" )
             handle_debug("Connection to Database succeeded", 0);
         else
         {
-            trigger_error("Connection to Database failed");
+            trigger_error("Connection to Database failed", E_USER_NOTICE);
             return;
         }
     }
@@ -164,48 +165,51 @@ if ( !file_exists ( $proj_parent ) )
 if ( !is_writeable ( $proj_parent  ) )
 {
     if ( $_configure_mode == "DELETE" )
-        trigger_error ("Projects area $proj_parent is not writeable - cannot delete project");
+        trigger_error ("Projects area $proj_parent is not writeable - cannot delete project", E_USER_NOTICE);
     else
-        trigger_error ("Projects area $proj_parent is not writeable - cannot write project");
+        trigger_error ("Projects area $proj_parent is not writeable - cannot write project", E_USER_NOTICE);
     return;
 }
 
 if ( file_exists ( $proj_dir ) )
 {
-    if ( $_configure_mode == "CREATE" || $_configure_mode == "CREATETUTORIALS" )
+    if ( $_configure_mode == "CREATE" )
     {
-        trigger_error ("Projects area $proj_dir already exists - cannot write project - use Configure Project instead");
+        trigger_error ("Projects area $proj_dir already exists - cannot write project - use Configure Project from the administration menu to change it. ", E_USER_NOTICE);
     	return;
     }
 }
 else 
 if ( $_configure_mode != "CREATE" )
 {
-        trigger_error ("Unable to access project. Projects area $proj_dir does not exist - if you are trying to rename the project, then rename the project folder manually");
+        trigger_error ("Unable to access project. Projects area $proj_dir does not exist - if you are trying to rename the project, then rename the project folder manually", E_USER_NOTICE);
     	return;
 }
 else
     if ( !mkdir ( $proj_dir ) )
     {
-        trigger_error ("Failed to create project directory $proj_dir");
+        trigger_error ("Failed to create project directory $proj_dir", E_USER_NOTICE);
         return;
     }
 
 if ( !is_writeable ( $proj_dir ) )
 {
-   trigger_error ("Project directory $proj_dir exists but is not writeable please correct this ");
+   if ( ! chmod ( $proj_dir, "u+rwx") )
+   {
+        trigger_error ("Failed to make project directory $proj_dir writeable ", E_USER_NOTICE);
+   }
 }
 
 if ( !file_exists ( $proj_conf ) && $_configure_mode == "DELETE" )
 {
-    trigger_error ("Projects configuration file $proj_conf not found. Project already deleted/deactivated");
+    trigger_error ("Projects configuration file $proj_conf not found. Project already deleted/deactivated", E_USER_NOTICE);
     return;
 }
 
 if ( file_exists ( $proj_conf ) && $_configure_mode == "DELETE" )
 {
     if ( !($status = rename ( $proj_conf, $proj_conf.".deleted" )) )
-        trigger_error ("Failed to disable $proj_conf file. Possible permission, configuration problem");
+        trigger_error ("Failed to disable $proj_conf file. Possible permission, configuration problem", E_USER_NOTICE);
     else
 	    handle_debug("Project Deleted Successfully", 0);
     $g_no_sql = true;
@@ -215,7 +219,7 @@ if ( file_exists ( $proj_conf ) && $_configure_mode == "DELETE" )
 
 if ( file_exists ( $proj_conf ) && !is_writeable($proj_conf) )
 {
-    trigger_error ("Projects configuration file $proj_conf exists but is not writeble. Cannot continue");
+    trigger_error ("Projects configuration file $proj_conf exists but is not writeble. Cannot continue", E_USER_NOTICE);
     return;
 }
 
@@ -252,7 +256,7 @@ else
 			$txt = file_get_contents($proj_template);
 		else
 		{
-    			trigger_error ("Cannot find source $proj_conf or $proj_template to configure");
+    			trigger_error ("Cannot find source $proj_conf or $proj_template to configure", E_USER_NOTICE);
     			return;
 		}
     }
@@ -261,10 +265,10 @@ else
 $matches = array();
 
 
-if ( $configparams["SW_DB_TYPE"] == "framework" )
-{
-        handle_debug("Connection to Database not checked as framework database connections have been used", 0);
-}
+//if ( $configparams["SW_DB_TYPE"] == "framework" )
+//{
+        //handle_debug("Connection to Database not checked as framework database connections have been used", 0);
+//}
 
 // If this is a reportico pre 2.8 then it wont handle "framework" type
 foreach ( $configparams as $paramkey => $paramval )
@@ -299,7 +303,7 @@ foreach ( $configparams as $paramkey => $paramval )
 
 $retval = file_put_contents($proj_conf, $txt);
 
-if ( $_configure_mode == "CREATE"  || $_configure_mode == "CREATETUTORIALS" )
+if ( $_configure_mode == "CREATE" )
 {
 	$txt = file_get_contents($menu_template);
 	$retval = file_put_contents($proj_menu, $txt);
@@ -307,6 +311,7 @@ if ( $_configure_mode == "CREATE"  || $_configure_mode == "CREATETUTORIALS" )
 	$retval = file_put_contents($proj_lang, $txt);
 }
 
+if ( $configparams["SW_PROJECT"] != "tutorials" )
 if ( !$configparams["SW_PROJECT_PASSWORD"] ) handle_debug ("Warning - Project password not set - any user will be able to run reports in this project", 0);
 
 if ( $_configure_mode == "CREATETUTORIALS" )

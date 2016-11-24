@@ -28,7 +28,15 @@ class ReporticoController extends Controller
     {
         $this->enableCsrfValidation = false;
         $this->engine = $this->module->getReporticoEngine();
-	    return $this->renderPartial('index', array('engine' => $this->engine));
+        // Yii will override an error code in a header with a good one set in reportico, so dont let it
+        $x = $this->renderPartial('index', array('engine' => $this->engine));
+        if ( http_response_code() != 200 )
+        {
+            echo $x;
+            die;
+        }
+
+	    return $x;
     }
 
     public function actionGraph()

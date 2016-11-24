@@ -251,6 +251,7 @@ echo $txt;
 		$this->vsize = $this->fontSize + $this->vspace;
 		$this->orientation = $this->query->get_attribute("PageOrientation");
 		$this->page_type = $this->query->get_attribute("PageSize");
+
 		if ( $this->orientation == "Portrait" )
 		{
 			$this->abs_page_width = $this->page_types[$this->page_type]["width"];
@@ -301,6 +302,7 @@ echo $txt;
                 "width" => array( 0 => false ),
                 "background-image" => array( 0 => false ),
                 "type" => array( 0 => "BASE" ),
+                "display" => array( 0 => "inline" ),
                );
 
 
@@ -840,19 +842,46 @@ echo $txt;
 		{
 			$this->debug("No pdf file specified !!!");
 			//$buf = $this->document->pdf_get_buffer($this->document);
-			$buf = $this->document->Output("", "S");
-			$len = strlen($buf);
+			//$buf = $this->document->Output("", "S");
+			//$buf = base64_decode(buf);
+			//$len = strlen($buf);
+			//header("Content-Type: application/pdf");
+			//header("Content-Length: $len");
+			//header("Cache-Control: must-revalidate, post-check=0, pre-check=0");
 
 			if ( ob_get_length() > 0 )
 				ob_clean();	
 
-			header("Content-Type: application/pdf");
-			header("Content-Length: $len");
-			header("Cache-Control: must-revalidate, post-check=0, pre-check=0");
+            // Use TCPDF's mechanisms for delivering via attachment or inline
             $attachfile = "reportico.pdf";
             if ( $this->reportfilename )
                 $attachfile = preg_replace("/ /", "_", $this->reportfilename.".pdf");
-			header('Content-Disposition: attachment;filename='.$attachfile);
+                       header('Content-Disposition: attachment;filename='.$attachfile);
+
+
+            // INLINE output is just returned to browser window it is invoked from 
+            // with hope that browser uses plugin
+            if ( $this->query->pdf_delivery_mode == "INLINE" )
+            {
+			    $this->document->Output($attachfile, "I"); 
+                die;
+            }
+            // DOWNLOAD_SAME_WINDOW output is ajaxed back to current browser window and then downloaded
+            else if ( $this->query->pdf_delivery_mode == "DOWNLOAD_SAME_WINDOW" && $this->query->reportico_ajax_called )
+            {
+                header('Content-Disposition: attachment;filename='.$attachfile);
+                header("Content-Type: application/pdf");
+			    $buf = base64_encode($this->document->Output($attachfile, "S"));
+			    $len = strlen($buf);
+                echo $buf;
+                die;
+            }
+            // DOWNLOAD_NEW_WINDOW new browser window is opened to download file
+            else
+            {
+			    $buf = $this->document->Output($attachfile, "D");  
+                die;
+            }
 
 
 			print($buf);
@@ -1116,7 +1145,7 @@ echo $txt;
             $pmargin =  $this->extract_style_tags ( "EACHLINE", $this->all_page_page_styles, "margin", "left" );
             $rgmargin =  $this->extract_style_tags ( "EACHLINE", $styles, "margin", "right" );
 		    $x = $this->all_page_page_styles["style_start"];
-            $wd = $this->all_page_page_styles["style_width"] + $pmargin - $rgmargin - 50;
+            $wd = $this->all_page_page_styles["style_width"] + $pmargin - $rgmargin;
             $this->set_position($x, $this->group_header_start);
 
             $link = false;
@@ -1217,6 +1246,9 @@ echo $txt;
     //Cell with horizontal scaling if text is too wide
     function draw_cell($w,$h=0,$txt='',$implied_styles="PBF",$ln=0,$align='',$valign="T", $link='')
     {
+        if ( end($this->stylestack["display"]) == "none" )
+            return;
+
         // Set custom width
         $custom_width = end( $this->stylestack["width"]);
         if ( $custom_width )
@@ -1558,8 +1590,14 @@ echo $txt;
             $preimageX = $this->document->GetX();
             $preimageY = $this->document->GetY();
 
-//echo "$background_image, $custom_height $h <BR>";
-            $p = $this->draw_image($background_image, $this->document->GetX() + $leftmargin, $this->document->GetY() + $topmargin, $cellvaluewidth, $h);
+//$this->debugFile("$this->draw_mode $margin_top t $topmargin txt <$txt> align $align image cur $cellvaluewidth / $h vs $custom_height/$custom_width $p\n");
+            // If text prvoded then background image covers text else set to custom height/width
+//$cellvaluewidth = "200";
+            //if ( $txt )
+                $p = $this->draw_image($background_image, $this->document->GetX() + $leftmargin, $this->document->GetY() + $topmargin, $cellvaluewidth, $h, false, $align);
+            //else
+                //$p = $this->draw_image($background_image, $this->document->GetX() + $leftmargin, $this->document->GetY() + $topmargin, $custom_width, $custom_height, false, $align);
+            $p += $topmargin;
             
 //echo "$last_draw_end_y $storeY $background_image ".$p."<BR>";
             //if ($this->document->GetY() + $p > $this->group_header_end )
@@ -1626,6 +1664,7 @@ echo $txt;
 
         $this->last_cell_xpos = $this->document->GetX();
         $this->last_cell_width = $actcellvaluewidth;
+
         if ( $background_image )
         {
             $ht= $this->draw_multicell($actcellvaluewidth,$h,$txt,$cellborder,$align,false,$link);
@@ -1902,8 +1941,11 @@ echo $txt;
 			{
 				$col =& $val->headers[$i]["GroupHeaderColumn"];
 				$custom = $val->headers[$i]["GroupHeaderCustom"];
-				$this->format_group_header($col, $custom, true);
-                $totheaderheight += $this->calculated_line_height;
+				if ( $val->headers[$i]["ShowInPDF"] )
+                {
+				    $this->format_group_header($col, $custom, true);
+                    $totheaderheight += $this->calculated_line_height;
+                }
 			}
         }
         $this->group_headers_custom_drawn = 0;
@@ -2073,10 +2115,15 @@ echo $txt;
 
 		    $this->yjump = 2;
 		    // Fetch Group Header Label Start Column + display
-            $margin =  $this->extract_style_tags ( "EACHLINE", $this->query->output_group_header_label_styles, "margin", "left" );
+            $margin =  $this->extract_style_tags ( "EACHLINE", $this->query->output_group_header_label_styles, "margin", "right" );
             $pmargin =  $this->extract_style_tags ( "EACHLINE", $this->all_page_page_styles, "margin", "left" );
             $rpmargin =  $this->extract_style_tags ( "EACHLINE", $this->all_page_page_styles, "margin", "right" );
+
+            // Default group header label to 150px unless one is specifed
             $labelwidth = 150;
+            if ( isset($this->query->output_group_header_label_styles["width"]) )
+                $labelwidth = $this->abs_metric($this->query->output_group_header_label_styles["width"]);
+
 		    $group_xpos = $this->all_page_page_styles["style_start"];
 		    $group_xpos += $pmargin;
 		    $group_label_width = $labelwidth;
@@ -2087,17 +2134,19 @@ echo $txt;
             $this->apply_style_tags( "EACHHEADMID", $this->mid_cell_reportbody_styles);
 
             if ( session_request_item("target_style", "TABLE" ) != "FORM" )
-	            $this->apply_style_tags( "HEADERLABEL", $this->query->output_group_header_label_styles);
+	            $this->apply_style_tags( "GROUPHEADERLABEL", $this->query->output_group_header_label_styles);
+
 		    $this->set_position($group_xpos, $y);
 		    $padstring = $group_label;
 		    $this->draw_cell( $group_label_width, $this->vsize, "$padstring");
+
             if ( session_request_item("target_style", "TABLE" ) != "FORM" )
-	            $this->unapply_style_tags( "HEADERLABEL", $this->query->output_group_header_label_styles);
+	            $this->unapply_style_tags( "GROUPHEADERLABEL", $this->query->output_group_header_label_styles);
     
             // Display group header value
 		    $contenttype = $col->derive_attribute( "content_type",  $col->query_name);
             if ( session_request_item("target_style", "TABLE" ) != "FORM" )
-	            $this->apply_style_tags( "HEADERVALUE", $this->query->output_group_header_value_styles);
+	            $this->apply_style_tags( "GROUPHEADERVALUE", $this->query->output_group_header_value_styles);
 
 			$qn = get_query_column($col->query_name, $this->query->columns ) ;
 		    if ( $contenttype == "graphic"  || preg_match("/imagesql=/", $qn->column_value))
@@ -2105,7 +2154,7 @@ echo $txt;
                 if ( $this->draw_mode == "CALCULATE" )
                 {
                     if ( session_request_item("target_style", "TABLE" ) != "FORM" )
-	                    $this->unapply_style_tags( "HEADERVALUE", $this->query->output_group_header_value_styles);
+	                    $this->unapply_style_tags( "GROUPHEADERVALUE", $this->query->output_group_header_value_styles);
                     $this->unapply_style_tags( "EACHHEADMID", $this->mid_cell_reportbody_styles);
                     continue;
                 }
@@ -2150,7 +2199,7 @@ echo $txt;
 			    $this->draw_cell($group_data_width, $this->vsize, "$padstring");
 		    }
             if ( session_request_item("target_style", "TABLE" ) != "FORM" )
-	            $this->unapply_style_tags( "HEADERVALUE", $this->query->output_group_header_value_styles);
+	            $this->unapply_style_tags( "GROUPHEADERVALUE", $this->query->output_group_header_value_styles);
 		    $this->end_line();
 		    //$this->draw_cell($group_data_width + 200, $this->vsize, "");    // Blank cell to continue page breaking at this size
 		    $y = $this->document->GetY();
@@ -2169,7 +2218,7 @@ echo $txt;
 
 	function format_column_header(& $column_item)   //PDF column headers
 	{
-		if ( !get_reportico_session_param("target_show_column_headers") )
+		if ( !get_reportico_session_param("target_show_detail") )
 			return;
 
 		if ( !$this->show_column_header($column_item) )
@@ -2256,14 +2305,18 @@ echo $txt;
     function draw_multicell($w, $h, $txt, $border, $align, $fill, $link = false, $keepy = false)
     {
         $oldh = $h;
+
         $storeY = $this->document->GetY();
 
         if ( $this->pdfDriver == "tcpdf" )
         {
-            if ( $keepy )
-                $this->document->Multicell($w,$h, $txt, $border, $align, $fill, 0);
+            if ( $link )
+			    $this->document->Write( $h, "$txt", $link);
             else
-                $this->document->Multicell($w,$h, $txt, $border, $align, $fill,1);
+                if ( $keepy )
+                    $this->document->Multicell($w,$h, $txt, $border, $align, $fill, 0);
+                else
+                    $this->document->Multicell($w,$h, $txt, $border, $align, $fill,1);
         }
         else
         {
@@ -2273,13 +2326,27 @@ echo $txt;
         return $h;
     }
 
-    function draw_image($file, $x, $y, $w, $h, $hidden = false)
+    function draw_image($file, $x, $y, $w, $h, $hidden = false, $halign = "")
     {
         if ( $this->pdfDriver == "tcpdf" )
         {
+                $imagehalign = "L";
+                $imagevalign = "T";
+                if ( $halign )
+                    if ( $halign == "left" ) $imagehalign = "L";
+                    else if ( $halign == "right" ) $imagehalign = "R";
+                    else if ( $halign == "center" ) $imagehalign = "C";
+                    else $imagehalign = $halign;
+
+                $align = $imagehalign . $imagevalign;
                 //$y = $this->document->GetY();
-		        $h = $this->document->Image($file, $x, $y, $w, $h, '', '', '', false, 300, '', false, false, 0, false, 0, false, $hidden);
+                //$y = $this->document->GetY();
+                //$this->debugFile("DRAW $file image $x/$y $w / $h vs ".$this->document->getImageRBY() ." align : $halign $align ");
+		        //$h = $this->document->Image($file, $x, $y, $w, $h, '', '', '', false, 300, $imagehalign, false, false, 0, false, 0, "", $hidden);
+		        $h = $this->document->Image($file, $x, $y, $w, $h, '', '', '', false, 300, "", false, false, 0, $align, $hidden);
+                //$this->debugFile("DRAW $file image $h vs ".$this->document->getImageRBY() ."");
                 $h = $this->document->getImageRBY() - $y;
+                //$this->debugFile("New eight $h");
                 if ( $h < 0 )
                     $h = 0;
         }
@@ -2415,6 +2482,7 @@ echo $txt;
 
 	function format_column(& $column_item) // PDF
 	{
+//if ( $this->line_count < 3 ) $this->debugFile("==========> FC $this->draw_mode $h =  $this->required_line_height");
 		if ( !$this->show_column_header($column_item) )
 				return;
         // Keep track of how many columns in current row to print if calculating
@@ -2507,6 +2575,7 @@ echo $txt;
                 if ( $column_item->output_hyperlinks )
                     $link = $column_item->output_hyperlinks["url"];
                 //$this->max_line_border_addition = 0;
+
 				$this->draw_cell($wd, $this->required_line_height, "$k","P",0,$just, "T", $link); //PPP
 			    $this->unapply_style_tags( "COLUMNCELL", $column_item->output_cell_styles);
 			    $this->unapply_style_tags( "COLUMNALL", $this->query->output_allcell_styles);
@@ -3118,6 +3187,7 @@ echo $txt;
 
 	function each_line($val) // PDF
 	{
+
         if ( !$this->columns_calculated )
         {
             // Calulate position and width of column detail taking into account
@@ -3226,6 +3296,7 @@ echo $txt;
             $prev_calculated_line_height = $this->calculated_line_height;
             $prev_current_line_height = $this->current_line_height;
             $prev_max_line_height = $this->max_line_height;
+            $prev_required_line_height = $this->required_line_height;
 
 
             if ( $this->column_header_required )
@@ -3237,8 +3308,7 @@ echo $txt;
             $this->current_line_height = $prev_current_line_height;
             $this->calculated_line_height = $prev_calculated_line_height;
             $this->max_line_height = $prev_max_line_height;
-
-
+            $this->required_line_height = $prev_required_line_height;
 
             // Line page wrapper
             $this->new_report_page_line_by_style("LINE5PAGE", $this->mid_page_reportbody_styles, false);
@@ -3591,7 +3661,8 @@ echo $txt;
         if ( $txt == "FINISH" )
             fclose($this->debugFp);
         else
-            fwrite ( $this->debugFp, "$txt => Max $this->max_line_height Curr $this->current_line_height \n" );
+            fwrite ( $this->debugFp, "$txt\n" );
+            //fwrite ( $this->debugFp, "$txt => Max $this->max_line_height Curr $this->current_line_height \n" );
 
     } 
 

@@ -368,7 +368,7 @@ class reportico_graph
                         }
                     };\n";
 
-        $js .= "var plot = reportico_jquery.plot(placeholder, data, options);\n";
+        $js .= "var plot = $.plot(placeholder, data, options);\n";
         $js .= "</script>\n";
     
 

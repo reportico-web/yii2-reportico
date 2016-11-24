@@ -539,7 +539,8 @@ class TCPDF {
 	 * @author Nicola Asuni
 	 * @protected
 	 */
-	protected $imgscale = 1;
+	//protected $imgscale = 1;
+	protected $imgscale = 1.53;
 
 	/**
 	 * Boolean flag set to true when the input text is unicode (require unicode fonts).
@@ -4297,6 +4298,7 @@ $brd["mode"] = "normal";
 		// true when the font style variation is missing
 		$missing_style = false;
 		// search and include font file
+        $old_error_handler = set_error_handler("\\reportico\\reportico\\components\\ErrorHandler", 0);
 		if (TCPDF_STATIC::empty_string($fontfile) OR (!@file_exists($fontfile))) {
 			// build a standard filenames for specified font
 			$tmp_fontfile = str_replace(' ', '', $family).strtolower($style).'.php';
@@ -4312,8 +4314,29 @@ $brd["mode"] = "normal";
 		if (!TCPDF_STATIC::empty_string($fontfile) AND (@file_exists($fontfile))) {
 			include($fontfile);
 		} else {
-			$this->Error('Could not include font definition file: '.$family.'');
+			//$this->Error('Could not 1include font definition '.$fontfile.' file: '.$family.'');
+                
+            $fontfile = "freesans";
+            $family = "freesans";
+            if (TCPDF_STATIC::empty_string($fontfile) OR (!@file_exists($fontfile))) {
+                    // build a standard filenames for specified font
+                    $tmp_fontfile = str_replace(' ', '', $family).strtolower($style).'.php';
+                    $fontfile = TCPDF_FONTS::getFontFullPath($tmp_fontfile, $fontdir);
+                    if (TCPDF_STATIC::empty_string($fontfile)) {
+                        $missing_style = true;
+                        // try to remove the style part
+                        $tmp_fontfile = str_replace(' ', '', $family).'.php';
+                        $fontfile = TCPDF_FONTS::getFontFullPath($tmp_fontfile, $fontdir);
+                    }
+                }
+                // include font file
+                if (!TCPDF_STATIC::empty_string($fontfile) AND (@file_exists($fontfile))) {
+                    include($fontfile);
+                } else {
+                    $this->Error('Could not2 include font definition '.$fontfile.' file: '.$family.'');
+                }
 		}
+        $old_error_handler = set_error_handler("\\reportico\\reportico\\components\\ErrorHandler");
 		// check font parameters
 		if ((!isset($type)) OR (!isset($cw))) {
 			$this->Error('The font definition file has a bad format: '.$fontfile.'');
@@ -4840,6 +4863,8 @@ $brd["mode"] = "normal";
 		if (!isset($this->PageAnnots[$page])) {
 			$this->PageAnnots[$page] = array();
 		}
+
+        $old_error_handler = set_error_handler("\\reportico\\reportico\\components\\ErrorHandler", 0);
 		$this->PageAnnots[$page][] = array('n' => ++$this->n, 'x' => $x, 'y' => $y, 'w' => $w, 'h' => $h, 'txt' => $text, 'opt' => $opt, 'numspaces' => $spaces);
 		if (!$this->pdfa_mode) {
 			if ((($opt['Subtype'] == 'FileAttachment') OR ($opt['Subtype'] == 'Sound')) AND (!TCPDF_STATIC::empty_string($opt['FS']))
@@ -4858,6 +4883,7 @@ $brd["mode"] = "normal";
 		if (isset($opt['mk']['ix']) AND @file_exists($opt['mk']['ix'])) {
 			$this->Image($opt['mk']['ix'], '', '', 0, 0, '', '', '', false, 300, '', false, false, 0, false, true);
 		}
+        $old_error_handler = set_error_handler("\\reportico\\reportico\\components\\ErrorHandler");
 	}
 
 	/**
@@ -6378,7 +6404,11 @@ $brd["mode"] = "normal";
 		$linebreak = false;
 		$pc = 0; // previous character
 		// for each character
+        $rrr = 0;
 		while ($i < $nb) {
+//file_put_contents("/tmp/debug.out", " $i $nb ppp ($maxh > 0) AND ($this->y > $maxy) \n", FILE_APPEND);
+            // break in the event there is a draw issue .. rrr shouldnot be high
+            if ( $rrr > 1000 ) break;
 			if (($maxh > 0) AND ($this->y > $maxy) ) {
 				break;
 			}
@@ -6536,6 +6566,7 @@ $brd["mode"] = "normal";
 								return (TCPDF_FONTS::UniArrSubString($uchars, $i));
 							}
 							$j = $i;
+$rrr++;
 							--$i;
 						}
 					} else {
@@ -6849,7 +6880,21 @@ $brd["mode"] = "normal";
 	 * @public
 	 * @since 1.1
 	 */
+    function debugFile( $txt )
+    {   
+        if ( !$this->debugFp )
+            $this->debugFp = fopen ( "/tmp/debug.pd", "w" );
+
+        if ( $txt == "FINISH" )
+            fclose($this->debugFp);
+        else
+            fwrite ( $this->debugFp, "$txt Curr $this->current_line_height \n" );
+
+    }
+
 	public function Image($file, $x='', $y='', $w=0, $h=0, $type='', $link='', $align='', $resize=false, $dpi=300, $palign='', $ismask=false, $imgmask=false, $border=0, $fitbox=false, $hidden=false, $fitonpage=false, $alt=false, $altimgs=array()) {
+//$dpi = 300;
+
 		if ($this->state != 2) {
 			return;
 		}
@@ -6874,13 +6919,18 @@ $brd["mode"] = "normal";
 				$exurl = $file;
 			}
 			// check if is a local file
+            $old_error_handler = set_error_handler("\\reportico\\reportico\\components\\ErrorHandler", 0);
 			if (!@file_exists($file)) {
+//$this->debugFile("oo");
+//$this->debugFile(getcwd()."none".$file);
 				// try to encode spaces on filename
 				$tfile = str_replace(' ', '%20', $file);
 				if (@file_exists($tfile)) {
 					$file = $tfile;
 				}
 			}
+//else
+//$this->debugFile(getcwd()." yes".$file);
 			if (($imsize = @getimagesize($file)) === FALSE) {
 				if (in_array($file, $this->imagekeys)) {
 					// get existing image data
@@ -6890,12 +6940,14 @@ $brd["mode"] = "normal";
 					$imgdata = TCPDF_STATIC::fileGetContents($file);
 				}
 			}
+            $old_error_handler = set_error_handler("\\reportico\\reportico\\components\\ErrorHandler");
 		}
 		if (!empty($imgdata)) {
 			// copy image to cache
 			$original_file = $file;
 			$file = TCPDF_STATIC::getObjFilename('img');
 			$fp = fopen($file, 'w');
+
 			if (!$fp) {
 				$this->Error('Unable to write file: '.$file);
 			}
@@ -6922,10 +6974,12 @@ $brd["mode"] = "normal";
 		}
 		// file hash
 		$filehash = md5($this->file_id.$file);
+//$this->debugFile("$filehash ".getcwd()." $imgdata".$file);
 		// get original image width and height in pixels
 		list($pixw, $pixh) = $imsize;
+//$this->debugFile("our $w $h piccy $pixw, $pixh ");
 		// calculate image width and height on document
-		if (($w <= 0) AND ($h <= 0)) {
+		if ( ($w <= 0) AND ($h <= 0)) {
 			// convert image size to document unit
 			$w = $this->pixelsToUnits($pixw);
 			$h = $this->pixelsToUnits($pixh);
@@ -6938,8 +6992,74 @@ $brd["mode"] = "normal";
 				// set default alignment
 				$fitbox = '--';
 			}
+
+            {
+				// store current height
+				$oldh = $h;
+				// calculate new height
+                if ( $resize )
+				    $h = $w * $pixh / $pixw;
+                else
+                    $h = $pixh;
+
+				// height difference
+				$hdiff = ($oldh - $h);
+				// vertical alignment
+				switch (strtoupper($fitbox[1])) {
+					case 'T': {
+						break;
+					}
+					case 'M': {
+						$y += ($hdiff / 2);
+						break;
+					}
+					case 'B': {
+						$y += $hdiff;
+						break;
+					}
+				}
+
+				// store current width
+				$oldw = $w;
+				// calculate new width
+//$this->debugFile ( "From {$fitbox[0]} Picture $pixh $pixw {$fitbox[1]} $oldw / $oldh to $w / $h diff $wdiff ? $hdiff => $x and $y");
+                if ( $resize )
+				    $w = $h * $pixw / $pixh;
+                else
+                    $w = $pixw;
+			    $w = $this->pixelsToUnits($pixw);
+			    $h = $this->pixelsToUnits($pixh);
+				// width difference
+				$wdiff = ($oldw - $w);
+//$this->debugFile ( "From {$fitbox[0]} Picture $pixh $pixw {$fitbox[1]} $oldw / $oldh to $w / $h diff $wdiff ? $hdiff => $x and $y");
+				// horizontal alignment
+				switch (strtoupper($fitbox[0])) {
+					case 'L': {
+						if ($this->rtl) {
+							$x -= $wdiff;
+						}
+						break;
+					}
+					case 'C': {
+						if ($this->rtl) {
+							$x -= ($wdiff / 2);
+						} else {
+							$x += ($wdiff / 2);
+						}
+						break;
+					}
+					case 'R': {
+						if (!$this->rtl) {
+							$x += $wdiff;
+						}
+						break;
+					}
+				}
+////$this->debugFile ( "From $oldw / $oldh to $w / $h diff $wdiff ? $hdiff => $x and $y");
+            }
 			// scale image dimensions proportionally to fit within the ($w, $h) box
-			if ((($w * $pixh) / ($h * $pixw)) < 1) {
+			/*if ((($w * $pixh) / ($h * $pixw)) < 1) {
+//$this->debugFile("Fit box 1 $fitbox $w * $pixh /  $h * $pixw ");
 				// store current height
 				$oldh = $h;
 				// calculate new height
@@ -6961,6 +7081,7 @@ $brd["mode"] = "normal";
 					}
 				}
 			} else {
+//$this->debugFile("Fit box 2 $fitbox $w $h");
 				// store current width
 				$oldw = $w;
 				// calculate new width
@@ -6991,12 +7112,15 @@ $brd["mode"] = "normal";
 					}
 				}
 			}
+*/
 		}
 		// fit the image on available space
 		list($w, $h, $x, $y) = $this->fitBlock($w, $h, $x, $y, $fitonpage);
 		// calculate new minimum dimensions in pixels
+//$this->debugFile ( "Now $dpi vs $this->dpi $w / $h  $neww $newh");
 		$neww = round($w * $this->k * $dpi / $this->dpi);
 		$newh = round($h * $this->k * $dpi / $this->dpi);
+//$this->debugFile ( "Now2 $w / $h  $neww $newh");
 		// check if resize is necessary (resize is used only to reduce the image)
 		$newsize = ($neww * $newh);
 		$pixsize = ($pixw * $pixh);
@@ -7005,9 +7129,11 @@ $brd["mode"] = "normal";
 		} elseif ($newsize >= $pixsize) {
 			$resize = false;
 		}
+//$this->debugFile ( " $newsize vs $pixsize  $resize Now $w / $h  $neww $newh");
 		// check if image has been already added on document
 		$newimage = true;
 		if (in_array($file, $this->imagekeys)) {
+//$this->debugFile ( " 1 ");
 			$newimage = false;
 			// get existing image data
 			$info = $this->getImageBuffer($file);
@@ -7019,6 +7145,7 @@ $brd["mode"] = "normal";
 				}
 			}
 		} elseif (($ismask === false) AND ($imgmask === false) AND (strpos($file, '__tcpdf_imgmask_') === FALSE)) {
+//$this->debugFile ( " 2 ");
 			// create temp image file (without alpha channel)
 			$tempfile_plain = K_PATH_CACHE.'__tcpdf_imgmask_plain_'.$filehash;
 			// create temp alpha file
@@ -7041,6 +7168,9 @@ $brd["mode"] = "normal";
 			}
 		}
 		if ($newimage) {
+//$this->debugFile ( " NEW ");
+		// check if image has been already added on document
+
 			//First use of image, get info
 			$type = strtolower($type);
 			if ($type == '') {

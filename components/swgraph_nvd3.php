@@ -465,6 +465,11 @@ class reportico_graph
         else
             $js .= "stacked = false;";
 
+        if ( count($this->plot) > 1 )
+            $js .= "showControls = true;";
+        else
+            $js .= "showControls = false;";
+
         if ( $showLegend )
             $js .= "showLegend = true;";
         else
@@ -519,9 +524,9 @@ class reportico_graph
 
 
             if ( $this->xgriddisplay_actual == "none" )
-                $js .= " reportico_jquery(\".x * * .tick line\").css(\"display\", \"none\"); ";
+                $js .= " $(\".x * * .tick line\").css(\"display\", \"none\"); ";
             if ( $this->ygriddisplay_actual == "none" )
-                $js .= " reportico_jquery(\".y1 * * .tick line\").css(\"display\", \"none\"); ";
+                $js .= " $(\".y1 * * .tick line\").css(\"display\", \"none\"); ";
         }
         else
         if ( $chartType == "DISCRETEBAR" )
@@ -569,9 +574,9 @@ class reportico_graph
             ";
 
             if ( $this->xgriddisplay_actual == "none" )
-                $js .= " reportico_jquery(\".x * * .tick line\").css(\"display\", \"none\"); ";
+                $js .= " $(\".x * * .tick line\").css(\"display\", \"none\"); ";
             if ( $this->ygriddisplay_actual == "none" )
-                $js .= " reportico_jquery(\".y1 * * .tick line\").css(\"display\", \"none\"); ";
+                $js .= " $(\".y1 * * .tick line\").css(\"display\", \"none\"); ";
         }
         else
         if ( $chartType == "SCATTER" )
@@ -613,9 +618,9 @@ class reportico_graph
             ";
 
             if ( $this->xgriddisplay_actual == "none" )
-                $js .= " reportico_jquery(\".x * * .tick line\").css(\"display\", \"none\"); ";
+                $js .= " $(\".x * * .tick line\").css(\"display\", \"none\"); ";
             if ( $this->ygriddisplay_actual == "none" )
-                $js .= " reportico_jquery(\".y1 * * .tick line\").css(\"display\", \"none\"); ";
+                $js .= " $(\".y1 * * .tick line\").css(\"display\", \"none\"); ";
         }
         else
         if ( $chartType == "BAR" || $chartType == "MULTIBAR" )
@@ -625,6 +630,7 @@ class reportico_graph
             .reduceXTicks (labelInterval)
             .labelCount(labelCount)
             .stacked(stacked)
+            .showControls(showControls)
             .margin({top: ".$this->margintop_actual.", right: ".$this->marginright_actual.", bottom: ".$this->marginbottom_actual.", left: ".$this->marginleft_actual." + 10})
             .color(colorrange)
             ;
@@ -666,9 +672,9 @@ class reportico_graph
             ";
 
             if ( $this->xgriddisplay_actual == "none" )
-                $js .= " reportico_jquery(\".x * * .tick line\").css(\"display\", \"none\"); ";
+                $js .= " $(\".x * * .tick line\").css(\"display\", \"none\"); ";
             if ( $this->ygriddisplay_actual == "none" )
-                $js .= " reportico_jquery(\".y1 * * .tick line\").css(\"display\", \"none\"); ";
+                $js .= " $(\".y1 * * .tick line\").css(\"display\", \"none\"); ";
         }
         else
         if ( $chartType == "AREACHART" || $chartType == "MULTIAREACHART" )
@@ -717,9 +723,9 @@ class reportico_graph
             ";
 
             if ( $this->xgriddisplay_actual == "none" )
-                $js .= " reportico_jquery(\".x * * .tick line\").css(\"display\", \"none\"); ";
+                $js .= " $(\".x * * .tick line\").css(\"display\", \"none\"); ";
             if ( $this->ygriddisplay_actual == "none" )
-                $js .= " reportico_jquery(\".y1 * * .tick line\").css(\"display\", \"none\"); ";
+                $js .= " $(\".y1 * * .tick line\").css(\"display\", \"none\"); ";
         }
         else
         if ( $chartType == "LINE"  || $chartType == "MULTILINE")
@@ -769,9 +775,9 @@ class reportico_graph
             ";
 
             if ( $this->xgriddisplay_actual == "none" )
-                $js .= " reportico_jquery(\".x * * .tick line\").css(\"display\", \"none\"); ";
+                $js .= " $(\".x * * .tick line\").css(\"display\", \"none\"); ";
             if ( $this->ygriddisplay_actual == "none" )
-                $js .= " reportico_jquery(\".y1 * * .tick line\").css(\"display\", \"none\"); ";
+                $js .= " $(\".y1 * * .tick line\").css(\"display\", \"none\"); ";
         }
         else
         {
@@ -825,9 +831,9 @@ class reportico_graph
             ";
 
             if ( $this->xgriddisplay_actual == "none" )
-                $js .= " reportico_jquery(\".x * * .tick line\").css(\"display\", \"none\"); ";
+                $js .= " $(\".x * * .tick line\").css(\"display\", \"none\"); ";
             if ( $this->ygriddisplay_actual == "none" )
-                $js .= " reportico_jquery(\".y1 * * .tick line\").css(\"display\", \"none\"); ";
+                $js .= " $(\".y1 * * .tick line\").css(\"display\", \"none\"); ";
         }
 
         $js .= "
