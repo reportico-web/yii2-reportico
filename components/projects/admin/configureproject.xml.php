@@ -138,6 +138,7 @@ else
     $configparams["SW_PROJECT_TITLE"] = SW_PROJECT_TITLE;
 }
 
+
 $proj_parent = $this->projects_folder;
 if (  !is_dir($proj_parent) )
     $proj_parent = find_best_location_in_include_path( $this->projects_folder );
@@ -169,6 +170,44 @@ if ( !is_writeable ( $proj_parent  ) )
     else
         trigger_error ("Projects area $proj_parent is not writeable - cannot write project", E_USER_NOTICE);
     return;
+}
+
+// In framework systems, creating the tutorials involves copying the existing project over
+if ( $_configure_mode == "CREATETUTORIALS" )
+{
+    $source_dir = "$admin_folder/tutorials";
+    if ( file_exists($proj_dir) && file_exists($proj_conf) )
+    {
+        trigger_error("Tutorials folder $source_dir already exists which means the tutorials are already there", E_USER_NOTICE);
+        return;
+    }
+    $source_config = "$admin_folder/tutorials/config.php";
+    if ( file_exists($proj_dir) && !file_exists($proj_conf) )
+    {
+        copy($source_config, $proj_conf);
+        trigger_error ("Tutorials created successfully", E_USER_NOTICE);
+        return;
+    }
+
+    if ( !is_writeable ( $proj_parent  ) )
+    {
+        trigger_error ("Projects area $proj_parent is not writeable - cannot create tutorials there", E_USER_NOTICE);
+        return;
+    }
+
+    // Copy whole project recursively
+    $dir = opendir($source_dir); 
+    $dst = $proj_dir;
+    mkdir($dst); 
+    while(false !== ( $file = readdir($dir)) ) { 
+        if (( $file != '.' ) && ( $file != '..' )) { 
+            copy($source_dir . '/' . $file,$dst . '/' . $file);
+        } 
+    } 
+    closedir($dir); 
+    trigger_error ("Tutorials created successfully", E_USER_NOTICE);
+    return;
+    
 }
 
 if ( file_exists ( $proj_dir ) )
