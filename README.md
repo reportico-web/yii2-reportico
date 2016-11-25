@@ -34,15 +34,11 @@ Once the extension is installed, simply use it in your code by adding to the mod
     ...
 ```
 
-
-
-Quickstart and Tutorials
-============================
+##Quickstart and Tutorials
 
 After setup you can follow http://yii2_url/index.php/r=reportico or (http://yii2_url/index.php/reportico if you are using pretty urls) to access reportico. Then you can set an admin password, configure the tutorials or create new report project.
 
-Use the tutorials to get to grips with report design, but for how to embed and create links to reportico from your Yii2 app follow the instructions in the link below :-
-
+Use the tutorials to get to grips with report design, but for embedding and creating links to reportico from your Yii2 app follow the instructions in the following links.
 
 For the Yii2 Reportico quickstart guide go to :-
 http://www.reportico.org/yii2/web/index.php/site/index
@@ -54,7 +50,7 @@ http://www.reportico.org
 
 
 
-##Screenshots
+## Screenshots
 
 
 ![Criteria Page](/images/reportico_prepare.png?raw=true "Criteria Page")
