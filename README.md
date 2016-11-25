@@ -54,20 +54,14 @@ http://www.reportico.org
 
 
 
-Screenshots
-===========
-
-![Administration Page](/components/images/lsadmin.png?raw=true "Administration Page")
+##Screenshots
 
 
-![Menu Page](/components/images/lsmenu.png?raw=true "Menu Page")
+![Criteria Page](/images/reportico_prepare.png?raw=true "Criteria Page")
 
 
-![Criteria Page](/components/images/lscriteria.png?raw=true "Criteria Page")
+![Edit Query Page](/images/reportico_sql.png?raw=true "Edit Query Page")
 
 
-![Edit Query Page](/components/images/lssql.png?raw=true "Edit Query Page")
-
-
-![Report Output Page](/components/images/lsoutput.png?raw=true "Report Output Page")
+![Report Output Page](/images/reportico_output.png?raw=true "Report Output Page")
 
