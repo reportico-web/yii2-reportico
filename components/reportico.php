@@ -8187,6 +8187,13 @@ class reportico_criteria_column extends reportico_query_column
 						if ( is_string($col) )
 						{
 							$col = trim($col);
+
+                            //Escape single quote
+                            if($this->datasource->_conn_driver == 'pdo_pgsql'){
+                                $conn  =& $this->datasource->ado_connection;
+                                $col = $conn->qstr($col, get_magic_quotes_gpc());
+                                if ($add_del) $col = trim($col, $del);
+                            }
 						}
 
 						if ( $col == "(ALL)" )
