@@ -122,7 +122,13 @@ class reportico_report_csv extends reportico_report
 
         // Handle double quotes by changing " to ""
         $output = str_replace("\"", "\"\"", $output);
-        $this->text .= "\"".$output."\",";
+
+        //Ettore - We don't add double quotes for numeric values
+        if(is_numeric($output)){
+            $this->text .= $output.",";
+		}
+		else
+        	$this->text .= "\"".$output."\",";
 
 	}
 
