@@ -33,6 +33,8 @@
  */
 require_once("reportico_report.php");
 
+use Zend\Stdlib\ArrayObject;
+
 class reportico_report_csv extends reportico_report
 {
 	var	$abs_top_margin;
@@ -125,8 +127,14 @@ class reportico_report_csv extends reportico_report
         $output = str_replace("\"", "\"\"", $output);
 
         //Ettore - We don't add double quotes for numeric values
+		$pattern = '/\d+[.]\d{2}\s*[€]/'; //1250.45€
         if(is_numeric($output)){
             $output = str_replace('.', ',', $output);
+            $this->text .= $output.";";
+		}
+		else if (preg_match($pattern, $output, $matches)){  //Se è una stringa terminante con il segno dell'euro rimuoviamo le virgolette ed il simbolo
+            $output = str_replace('.', ',', $output);
+            $output = str_replace('€', '', $output);
             $this->text .= $output.";";
 		}
 		else
