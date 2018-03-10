@@ -16,8 +16,8 @@
     },
     "license": "GPL-3.0",
     "autoload": {
-        "psr-4": {
-            "Reportico\\Reportico\\": "src/"
+        "psr-0": {
+            "reportico\\reportico\\": ""
         }
     },
     "scripts": {
