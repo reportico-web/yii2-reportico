@@ -6,6 +6,7 @@ use yii\web\Controller;
 use reportico\reportico\components\reportico_datasource;
 use yii\web\NotFoundHttpException;
 
+
 class ReporticoController extends Controller
 {
     public $engine = false;
@@ -26,10 +27,13 @@ class ReporticoController extends Controller
 
     public function actionAjax()
     {
-        $this->enableCsrfValidation = false;
+        ini_set('display_errors', 1);
+        $this->enableCsrfValidation = true;
         $this->engine = $this->module->getReporticoEngine();
+
         // Yii will override an error code in a header with a good one set in reportico, so dont let it
         $x = $this->renderPartial('index', array('engine' => $this->engine));
+
         if ( http_response_code() != 200 )
         {
             echo $x;

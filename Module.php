@@ -30,11 +30,28 @@ class Module extends \yii\base\Module //implements BootstrapInterface
         return \Yii::$app->assetManager->getPublishedUrl($assetsFolder);
     }
 
+
     // Create an instance of a reportico generator for Yii
     public function getReporticoEngine()
     {
-        $this->engine = new components\reportico();
-        components\set_up_reportico_session();
+
+        // If a native session id is specified ( normally from a request to print PDF ), load that session
+        if ( isset($_REQUEST["reportico_yii_session"]) ) {
+
+            session_id($_REQUEST["reportico_yii_session"]);
+            session_start();
+        }
+        else {
+            // Open Yii session if not already
+            Yii::$app->session->open();
+        }
+
+
+        define ( "REPORTICO_SESSION_CLASS", "\\reportico\\reportico\components\ReporticoSession" );
+
+        $this->engine = new \Reportico\Engine\Reportico();
+
+        //components\set_up_reportico_session();
 
         if(Yii::$app->getUrlManager()->enablePrettyUrl)
         {
@@ -67,8 +84,22 @@ class Module extends \yii\base\Module //implements BootstrapInterface
 
         $this->engine->url_path_to_assets = $this->getAssetsUrl();
 
+
+        // Theme configuration
+        $base = \Yii::$app->basePath;
+        $this->engine->theme = "default";
+
+        // Set up Twig Paths
+        $assetsFolder = \Yii::getAlias("@reportico/reportico/assets");
+        $this->engine->templateViewPath = \Yii::$app->assetManager->getPublishedPath($assetsFolder)."/themes"; //\Yii::getAlias("@reportico/reportico/themes");
+        $this->engine->templateCachePath = \Yii::getAlias("@runtime/reportico/cache");
+        $this->engine->url_path_to_templates = $this->engine->url_path_to_assets."/themes";
+
         // Where to store reportco projects
         $this->engine->projects_folder = $this->configGet("path_to_projects");
+        $this->engine->admin_projects_folder = $this->configGet("path_to_admin");
+
+        // Ensure that projects area is created if it doesnt exists
         if ( !is_dir($this->engine->projects_folder) )
         {
             $status = @mkdir($this->engine->projects_folder, 0755, true);
@@ -79,7 +110,33 @@ class Module extends \yii\base\Module //implements BootstrapInterface
                 die;
             }
         }
-        $this->engine->admin_projects_folder = $this->configGet("path_to_admin");
+
+        // Ensure that admin projects area is copied from reportico engine area is it doesnt exist
+        $admin_folder = $this->configGet("path_to_admin"). DIRECTORY_SEPARATOR ."admin";
+        if ( !is_dir($admin_folder) ) {
+
+            $status = @mkdir($admin_folder, 0755, true);
+            if ( !$status ) {
+                echo "Error cant create admin area ".$this->engine->projects_folder."<BR>";
+                die;
+            }
+
+            // Create admin folder, now copy from reportico engine vendor area
+            $source = \Yii::getAlias("@vendor/reportico-web/reportico/projects/admin");
+            $dir_handle=opendir($source);
+            while($file=readdir($dir_handle)){
+                
+                $sourcefile = $source.DIRECTORY_SEPARATOR.$file;
+                $targetfile = $admin_folder.DIRECTORY_SEPARATOR.$file;
+                if ( is_file($sourcefile) ) {
+                    //echo "$sourcefile => $targetfile <BR>";
+                    copy ( $sourcefile, $targetfile);
+                }
+            }
+            closedir($dir_handle);
+        }
+
+        // Ensure admin project files are created
 
         // Indicates whether report output should include a refresh button
         $this->engine->show_refresh_button = $this->configGet("show_refresh_button");
@@ -105,6 +162,11 @@ class Module extends \yii\base\Module //implements BootstrapInterface
 
         // Engine to use for PDF generation
         $this->engine->pdf_engine = $this->configGet("pdf_engine");
+
+        $this->engine->pdf_phantomjs_path = $this->configGet("pdf_phantomjs_path");
+        $this->engine->pdf_phantomjs_temp_path = $this->configGet("pdf_phantomjs_temp_path");
+
+
 
         // Whether to turn on dynamic grids to provide searchable/sortable reports
         $this->engine->dynamic_grids = $this->configGet("dynamic_grids");
