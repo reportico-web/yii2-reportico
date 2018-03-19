@@ -136,7 +136,31 @@ class Module extends \yii\base\Module //implements BootstrapInterface
             closedir($dir_handle);
         }
 
-        // Ensure admin project files are created
+        // Ensure that tutorials projects area is copied from reportico engine area is it doesnt exist
+        $tutorials_folder = $this->configGet("path_to_admin"). DIRECTORY_SEPARATOR ."tutorials";
+        if ( !is_dir($tutorials_folder) ) {
+
+            $status = @mkdir($tutorials_folder, 0755, true);
+            if ( !$status ) {
+                echo "Error cant create tutorials area ".$this->engine->projects_folder."<BR>";
+                die;
+            }
+
+            // Create tutorials folder, now copy from reportico engine vendor area
+            $source = \Yii::getAlias("@vendor/reportico-web/reportico/projects/tutorials");
+            $dir_handle=opendir($source);
+            while($file=readdir($dir_handle)){
+                
+                $sourcefile = $source.DIRECTORY_SEPARATOR.$file;
+                $targetfile = $tutorials_folder.DIRECTORY_SEPARATOR.$file;
+                if ( is_file($sourcefile) ) {
+                    //echo "$sourcefile => $targetfile <BR>";
+                    copy ( $sourcefile, $targetfile);
+                }
+            }
+            closedir($dir_handle);
+        }
+
 
         // Indicates whether report output should include a refresh button
         $this->engine->show_refresh_button = $this->configGet("show_refresh_button");

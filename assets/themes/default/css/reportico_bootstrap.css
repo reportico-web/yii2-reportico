@@ -29,6 +29,8 @@
 .swDisplayGroupLine td
 {
     background-color: #eeeeff;
+    padding-left: 20px;
+    font-weight: normal;
 }
 
 #swPrpSaveFile
@@ -285,6 +287,11 @@ a:visited
     text-decoration: none;
 }
 
+.swToggleCriteriaDiv td
+{ 
+    font-weight: bold;
+}
+
 .swToggleCriteria, .swToggleCriteria:link, .swToggleCriteria:visited
 { 
     padding-right: 5px;
@@ -520,7 +527,7 @@ input.swAdminButton2
 /* -----------------------------Styles for EXECUTE Execute Mode -----------------------*/
 /* ----------------------------- i.e for the HTML Report Output -----------------------*/
 /* Report Title Header */
-.swRepTitle 
+.reportico-title 
 { 
     font-size: 18pt;
     text-align: center;
@@ -532,7 +539,7 @@ input.swAdminButton2
 }
 
 /* Table container for whole Report */
-.swRepBody 
+.reportico-body 
 { 
     width: 90%;
     margin-left: 5%;
@@ -593,15 +600,15 @@ input.swAdminButton2
 }
 
 /* Container for Group Headers  */
-.swRepResultLine td
+.reportico-row td
 {
     padding: 2px 2px 1px 2px;
 }
 
-/*.swRepResultLine:nth-child(even) { background-color: inherit; }
-.swRepResultLine:nth-child(odd) { background-color: inherit; }*/
+/*.reportico-row:nth-child(even) { background-color: inherit; }
+.reportico-row:nth-child(odd) { background-color: inherit; }*/
 
-.swRepResultLine td a
+.reportico-row td a
 {
     text-decoration: underline;
 }
@@ -618,7 +625,6 @@ input.swAdminButton2
     margin-right: 0.5%;
     padding-bottom: 5px;
 }
-
 .reportico-criteria
 {
     border-top: solid 1px #ddddff;
@@ -643,7 +649,7 @@ input.swAdminButton2
     margin-right: auto;
 }
 
-.swRepResultGraph
+.reportico-chart
 {
     margin: 0px 5px 0px 5px;
 }
@@ -1151,7 +1157,7 @@ input.swAdminButton2
     .swRepButtons { display: none; }
     .prepareAjaxExecuteIgnore { display: none; }
     .swRepForm { border: none; }
-    .swRepBody { width: 100%; margin: 0px; border: none; }
+    .reportico-body { width: 100%; margin: 0px; border: none; }
 
     .swLastPageFooterBlock { display: block; }
     .swNewPageHeaderBlock { display: block; } 
@@ -1188,9 +1194,9 @@ input.swAdminButton2
     .swNewPageHeaderBlock { page-break-before: always; }
     /*.swNewPage { page-break-before: always; }*/
 
-    .swRepTitle { font-size: 18pt; text-align: center; margin-top: 0px; border: none;}
+    .reportico-title { font-size: 18pt; text-align: center; margin-top: 0px; border: none;}
     .swMntForm { text-align: left; margin-left: 0%; background-color: #ffffff; border: none; }
-    .swRepResultLine td a
+    .reportico-row td a
     {
         text-decoration: underline;
         color: #ff0000;
@@ -1200,7 +1206,7 @@ input.swAdminButton2
           content: none !important;
     }
 
-    .swRepResultGraph {
+    .reportico-chart {
         page-break-inside: avoid;
     }
 }
@@ -1347,34 +1353,72 @@ border-top: 1px solid #e5e5e5;
 
 /* Chart Title */
 .reportico-chart-title {
-  font: normal 16pt sans-serif !important;
+  font: normal 12pt sans-serif !important;
 }
 
+.reportico-dropdown {
+  z-index: 1001 !important;
+}
+
+
+/* ---------- STYLES FOR PDF CHARTS ----------*/
 /* Chart Default Text */
 .nvd3 text {
-  font: normal 12pt sans-serif !important;
+  font: normal 8pt sans-serif !important;
 }
 
 /* Axis Tick Styles */
 .nvd3 .axis .tick text,
 .nvd3 .axis .nv-axisMaxMin text
 {
-  font: normal 10pt sans-serif !important;
+  font: normal 8pt sans-serif !important;
 }
 
 /* Axis Title Styles */
 .nvd3 .nv-axislabel {
-  font: normal 14pt sans-serif !important;
+  font: normal 8pt sans-serif !important;
 }
 
 /* Legend Styles */
 .nvd3 .nv-series text {
-  font: normal 10pt sans-serif !important;
+  font: normal 8pt sans-serif !important;
 }
 /* Title Styles */
 .nvd3 .title {
-  font: normal 16px sans-serif !important;
+  font: normal 8pt sans-serif !important;
 }
 .nvtooltip {
   font-family: sans-serif !important;
 }
+/* -------- END STYLES FOR HTML CHARTS --------*/
+
+/* ---------- STYLES FOR PDF CHARTS ----------*/
+/* Chart Default Text */
+.reportico-print-pdf * .nvd3 text {
+  font: normal 8pt sans-serif !important;
+}
+
+/* Axis Tick Styles */
+.reportico-print-pdf * .nvd3 .axis .tick text,
+.reportico-print-pdf * .nvd3 .axis .nv-axisMaxMin text
+{
+  font: normal 6pt sans-serif !important;
+}
+
+/* Axis Title Styles */
+.reportico-print-pdf * .nvd3 .nv-axislabel {
+  font: normal 6pt sans-serif !important;
+}
+
+/* Legend Styles */
+.reportico-print-pdf * .nvd3 .nv-series text {
+  font: normal 6pt sans-serif !important;
+}
+/* Title Styles */
+.reportico-print-pdf * .nvd3 .title {
+  font: normal 8pt sans-serif !important;
+}
+.nvtooltip {
+  font-family: sans-serif !important;
+}
+/* -------- END STYLES FOR PDF CHARTS --------*/
