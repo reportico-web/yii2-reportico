@@ -2271,12 +2271,26 @@ class reportico extends reportico_object
 
 			if ( $expval ) 
 			{
-				$str = ' AND '.$this->match_column.' LIKE "%'.$expval.'%"';
+				if($this->datasource->_conn_driver == 'pdo_pgsql') //Fix for PostgreSql
+				{
+                    $str = ' AND '.$this->match_column.' ILIKE \'%'.$expval.'%\'';
+				}
+				else
+				{
+					$str = ' AND '.$this->match_column.' LIKE "%'.$expval.'%"';
+                }
 			}
 		}
         else if ( $expval = get_request_item("reportico_criteria_match", false) )
         {
-            $str = ' AND '.$this->match_column.' LIKE "%'.$expval.'%"';
+            if($this->datasource->_conn_driver == 'pdo_pgsql') //Fix for PostgreSql
+            {
+                $str = ' AND '.$this->match_column.' ILIKE \'%'.$expval.'%\'';
+            }
+            else
+            {
+                $str = ' AND '.$this->match_column.' LIKE "%'.$expval.'%"';
+            }
         }
 
 		return $str;
@@ -2425,8 +2439,12 @@ class reportico extends reportico_object
             }
 
 			// Add in any expand criteria
-		    $critwhere .= $this->build_where_extra_list($in_is_expanding, $criteria_name);
-
+            // Fix - Ajax lookups were done for every 'Database Lookup' criteria
+            $req_item = get_request_item("reportico_criteria");
+            if (empty($req_item) ||
+                $criteria_name == $req_item){
+                $critwhere .= $this->build_where_extra_list($in_is_expanding, $criteria_name);
+            }
             // If user has "Main query column" criteria then parse sql to find
             // where to insert them
             if ( $critwhere )
@@ -7755,6 +7773,7 @@ class reportico_criteria_column extends reportico_query_column
 		for ($i = 0; $i < count($res[$k]); $i++ )
 		{
 			$line =&$res[$i];
+
 			foreach ( $this->lookup_query->columns as $ky => $col )
 			{
 				if ( $col->lookup_display_flag )
@@ -8168,6 +8187,13 @@ class reportico_criteria_column extends reportico_query_column
 						if ( is_string($col) )
 						{
 							$col = trim($col);
+
+                            //Escape single quote
+                            if($this->datasource->_conn_driver == 'pdo_pgsql'){
+                                $conn  =& $this->datasource->ado_connection;
+                                $col = $conn->qstr($col, get_magic_quotes_gpc());
+                                if ($add_del) $col = trim($col, $del);
+                            }
 						}
 
 						if ( $col == "(ALL)" )
