@@ -31,13 +31,15 @@ class Module extends \yii\base\Module //implements BootstrapInterface
         
         // Before building themes assets ensure any new reportico themes are copied from the core system
         $source = \Yii::getAlias("@vendor/reportico-web/reportico/themes");
-        $target = $this->engine->templateViewPath = \Yii::getAlias("@runtime/reportico/themes");
+        $target = $this->engine->templateViewPath = \Yii::getAlias("@runtime/reportico");
         self::copyFolder($source, $target, false, 999);
 
         // Now the custom and default themes are available under runtime themes, 
         // generate web accessible themes asset folder containing theme css and js
         $assetsFolder = \Yii::getAlias("@runtime/reportico/themes");
         \Yii::$app->assetManager->publish($assetsFolder);
+
+        $this->engine->templateViewPath = \Yii::getAlias("@runtime/reportico/themes");
 
         return \Yii::$app->assetManager->getPublishedUrl($assetsFolder);
     }
@@ -329,8 +331,11 @@ class Module extends \yii\base\Module //implements BootstrapInterface
 
                         $copyLevel++;
                         //echo "$file => $dest/$sourcefolder !$copyexistingfolder! $maxcopyLevel <= $copyLevel <BR>";
-                        if ( $copyLevel <= $maxcopyLevel && $copyexistingfolder )
+                        //echo $dest.DIRECTORY_SEPARATOR.$sourcefolder."!";
+                        if ( $copyLevel <= $maxcopyLevel && ( !is_dir($dest.DIRECTORY_SEPARATOR.$sourcefolder.DIRECTORY_SEPARATOR.$file) || $copyexistingfolder ) ) {
+                            //echo "oo";
                             self::copyFolder($source.DIRECTORY_SEPARATOR.$file, $dest.DIRECTORY_SEPARATOR.$sourcefolder, true, $maxcopyLevel,$copyLevel);
+                        }
                     } else {
                         echo "filecopy $file to $targetfolder<BR>";
                         copy($source.DIRECTORY_SEPARATOR.$file, $targetfolder.DIRECTORY_SEPARATOR.$file);
