@@ -21,11 +21,33 @@ class Module extends \yii\base\Module //implements BootstrapInterface
     public $controllerNamespace = 'reportico\reportico\controllers';
 
     /**
+     * Publish reportico theme css
+     */
+    function getAssetsTheme()
+    {
+        // Theme assets (i.e. css and js for reportico themes 
+        // are built from the the runtime themes folder which is a combination of the 
+        // core reportico themes and any custom themes created by user.
+        
+        // Before building themes assets ensure any new reportico themes are copied from the core system
+        $source = \Yii::getAlias("@vendor/reportico-web/reportico/themes");
+        $target = $this->engine->templateViewPath = \Yii::getAlias("@runtime/reportico/themes");
+        self::copyFolder($source, $target, false, 999);
+
+        // Now the custom and default themes are available under runtime themes, 
+        // generate web accessible themes asset folder containing theme css and js
+        $assetsFolder = \Yii::getAlias("@runtime/reportico/themes");
+        \Yii::$app->assetManager->publish($assetsFolder);
+
+        return \Yii::$app->assetManager->getPublishedUrl($assetsFolder);
+    }
+
+    /**
      * Publish reportico assets
      */
     function getAssetsUrl()
     {
-        $assetsFolder = \Yii::getAlias("@reportico/reportico/assets");
+        $assetsFolder = \Yii::getAlias("@vendor/reportico-web/reportico/assets");
         \Yii::$app->assetManager->publish($assetsFolder);
         return \Yii::$app->assetManager->getPublishedUrl($assetsFolder);
     }
@@ -59,7 +81,7 @@ class Module extends \yii\base\Module //implements BootstrapInterface
             $this->engine->forward_url_get_parameters = false;
             $this->engine->forward_url_get_parameters_graph = "r=reportico/reportico/graph";
             $this->engine->forward_url_get_parameters_dbimage = "r=reportico/reportico/dbimage";
-            $this->engine->reportico_ajax_mode = 2;
+            $this->engine->reportico_ajax_mode = "yii-pretty-url";
         }
         else
         {
@@ -67,9 +89,9 @@ class Module extends \yii\base\Module //implements BootstrapInterface
             $this->engine->forward_url_get_parameters = "r=reportico/reportico/ajax";
             $this->engine->forward_url_get_parameters_graph = "r=reportico/reportico/graph";
             $this->engine->forward_url_get_parameters_dbimage = "r=reportico/reportico/dbimage";
-            $this->engine->reportico_ajax_mode = 1;
+            $this->engine->reportico_ajax_mode = "yii-ugly-url";
         }
-        $this->engine->embedded_report = true;
+        //$this->engine->embedded_report = true;
         $this->engine->allow_debug = true;
 
         $this->engine->forward_url_get_parameters_graph = "reportico/graph";
@@ -91,9 +113,9 @@ class Module extends \yii\base\Module //implements BootstrapInterface
 
         // Set up Twig Paths
         $assetsFolder = \Yii::getAlias("@reportico/reportico/assets");
-        $this->engine->templateViewPath = \Yii::$app->assetManager->getPublishedPath($assetsFolder)."/themes"; //\Yii::getAlias("@reportico/reportico/themes");
         $this->engine->templateCachePath = \Yii::getAlias("@runtime/reportico/cache");
-        $this->engine->url_path_to_templates = $this->engine->url_path_to_assets."/themes";
+        $this->engine->url_path_to_templates = $this->getAssetsTheme();
+
 
         // Where to store reportco projects
         $this->engine->projects_folder = $this->configGet("path_to_projects");
@@ -281,6 +303,47 @@ class Module extends \yii\base\Module //implements BootstrapInterface
         return $this->engine;
     }    
 
+    // Recursive copy of folders for populating assets and runtime areas with 
+    // themes and other assets
+    static public function copyFolder($source, $dest, $copyexistingfolder = false, $maxcopyLevel, $copyLevel = 0)
+    {
+        //echo "<BR>=====<BR>COPY $source, $dest<BR>";
+        // recursive function to copy
+        // all subdirectories and contents:
+        if(is_dir($source)) {
+
+            $dir_handle=opendir($source);
+            $sourcefolder = basename($source);
+            $targetfolder = $dest.DIRECTORY_SEPARATOR.$sourcefolder;
+            if ( !is_dir($targetfolder) ) {
+                $status = @mkdir($dest.DIRECTORY_SEPARATOR.$sourcefolder);
+                if ( !$status ) {
+                    echo "Error cant create themes area ".$dest.DIRECTORY_SEPARATOR.$sourcefolder."<BR>";
+                    die;
+                }
+            }
+
+            while($file=readdir($dir_handle)){
+                if($file!="." && $file!=".."){
+                    if(is_dir($source.DIRECTORY_SEPARATOR.$file)){
+
+                        $copyLevel++;
+                        //echo "$file => $dest/$sourcefolder !$copyexistingfolder! $maxcopyLevel <= $copyLevel <BR>";
+                        if ( $copyLevel <= $maxcopyLevel && $copyexistingfolder )
+                            self::copyFolder($source.DIRECTORY_SEPARATOR.$file, $dest.DIRECTORY_SEPARATOR.$sourcefolder, true, $maxcopyLevel,$copyLevel);
+                    } else {
+                        echo "filecopy $file to $targetfolder<BR>";
+                        copy($source.DIRECTORY_SEPARATOR.$file, $targetfolder.DIRECTORY_SEPARATOR.$file);
+                    }
+                }
+            }
+            closedir($dir_handle);
+        } else {
+            // can also handle simple copy commands
+            copy($source, $dest);
+        }
+    }
+
     // Generate output
     public function generate()
     {
@@ -291,7 +354,7 @@ class Module extends \yii\base\Module //implements BootstrapInterface
     {
         // Load defautl config parameters
         if ( !$this->config )
-            require_once(__DIR__."/config.php");
+            require_once(__DIR__.DIRECTORY_SEPARATOR."config.php");
 
         return $this->config[$param];
     }
