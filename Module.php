@@ -318,7 +318,7 @@ class Module extends \yii\base\Module //implements BootstrapInterface
             $sourcefolder = basename($source);
             $targetfolder = $dest.DIRECTORY_SEPARATOR.$sourcefolder;
             if ( !is_dir($targetfolder) ) {
-                $status = @mkdir($dest.DIRECTORY_SEPARATOR.$sourcefolder);
+                $status = @mkdir($dest.DIRECTORY_SEPARATOR.$sourcefolder, 0755, true);
                 if ( !$status ) {
                     echo "Error cant create themes area ".$dest.DIRECTORY_SEPARATOR.$sourcefolder."<BR>";
                     die;
@@ -337,7 +337,7 @@ class Module extends \yii\base\Module //implements BootstrapInterface
                             self::copyFolder($source.DIRECTORY_SEPARATOR.$file, $dest.DIRECTORY_SEPARATOR.$sourcefolder, true, $maxcopyLevel,$copyLevel);
                         }
                     } else {
-                        echo "filecopy $file to $targetfolder<BR>";
+                        //echo "filecopy $file to $targetfolder<BR>";
                         copy($source.DIRECTORY_SEPARATOR.$file, $targetfolder.DIRECTORY_SEPARATOR.$file);
                     }
                 }
