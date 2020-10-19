@@ -1575,7 +1575,7 @@ class reportico extends reportico_object
 			{
                 // Since using Select2, we find unselected list boxes still send an empty array with a single character which we dont want to include
                 // as a criteria selection
-                if ( !(is_array($_REQUEST[$col->query_name]) && count($col->query_name) == 1 && $_REQUEST[$col->query_name][0] == "" ))
+                if ( !(is_array($_REQUEST[$col->query_name]) && isset($_REQUEST[$col->query_name][0]) && $_REQUEST[$col->query_name][0] == "" ))
 				    $crit_value = $_REQUEST[$crit_name];
 			}
 
@@ -1698,7 +1698,7 @@ class reportico extends reportico_object
             // Fetch the criteria value summary if required for displaying
             // the criteria entry summary at top of report
 			if ( $execute_mode && $execute_mode != "MAINTAIN" && $this->target_show_criteria &&
-                    ( ( array_key_exists($col->query_name, $_REQUEST) && !(is_array($_REQUEST[$col->query_name]) && count($col->query_name) == 1 && $_REQUEST[$col->query_name][0] == "" ))
+                    ( ( array_key_exists($col->query_name, $_REQUEST) && !(is_array($_REQUEST[$col->query_name]) && isset($_REQUEST[$col->query_name][0]) && $_REQUEST[$col->query_name][0] == "" ))
 			        || array_key_exists("MANUAL_".$col->query_name, $_REQUEST) 
 			        || array_key_exists("HIDDEN_".$col->query_name, $_REQUEST) 
                     ) )
@@ -1714,7 +1714,7 @@ class reportico extends reportico_object
 			{
                 // Since using Select2, we find unselected list boxes still send an empty array with a single character which we dont want to include
                 // as a criteria selection
-                if ( !(is_array($_REQUEST[$col->query_name]) && count($col->query_name) == 1 && $_REQUEST[$col->query_name][0] == "") )
+                if ( !(is_array($_REQUEST[$col->query_name]) && isset($_REQUEST[$col->query_name][0]) && $_REQUEST[$col->query_name][0] == "") )
 				    $this->lookup_queries[$col->query_name]->column_value =
 					    $_REQUEST[$col->query_name];
 			}
