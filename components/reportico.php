@@ -75,7 +75,6 @@ global $g_session_namespace_key;
 $g_session_namespace = false;
 $g_session_namespace_key = "reportico";
 
-
 /**
  * Class reportico_object
  *
@@ -8191,7 +8190,7 @@ class reportico_criteria_column extends reportico_query_column
                             //Escape single quote
                             if($this->datasource->_conn_driver == 'pdo_pgsql'){
                                 $conn  =& $this->datasource->ado_connection;
-                                $col = $conn->qstr($col, get_magic_quotes_gpc());
+                                $col = $conn->qstr($col);
                                 if ($add_del) $col = trim($col, $del);
                             }
 						}
