@@ -6569,7 +6569,9 @@ class reportico_criteria_column extends reportico_query_column
         }
 
         $txt = "";
-		$res =& $this->lookup_query->targets[0]->results;
+		$res = false;
+		if ( isset($this->lookup_query->targets[0]) )
+			$res =& $this->lookup_query->targets[0]->results;
 		if ( !$res )
 		{
 			$res = array();
@@ -7416,8 +7418,10 @@ class reportico_criteria_column extends reportico_query_column
 
 				case "MULTI":
 						$multisize = 12;
-						$res =& $this->lookup_query->targets[0]->results;
-						$k = key($res);
+						$res = false;
+						if ( isset($this->lookup_query->targets[0]) )
+							$res =& $this->lookup_query->targets[0]->results;
+							$k = key($res);
 						$multisize = 4;
 						if ( $res && count($res[$k]) > 4 )
 							$multisize = count($res[$k]);
@@ -7463,7 +7467,9 @@ class reportico_criteria_column extends reportico_query_column
 		if ( $this->submitted('EXPANDSELECTALL_'.$this->query_name) ) 
 			$selectall = true;
 
-		$res =& $this->lookup_query->targets[0]->results;
+		$res = false;
+		if ( isset($this->lookup_query->targets[0]) )
+			$res =& $this->lookup_query->targets[0]->results;
 		if ( !$res )
 		{
 			$res = array();
@@ -7712,7 +7718,9 @@ class reportico_criteria_column extends reportico_query_column
 
 				case "MULTI":
 						$multisize = 12;
-						$res =& $this->lookup_query->targets[0]->results;
+						$res = false;
+						if ( isset($this->lookup_query->targets[0]) )
+							$res =& $this->lookup_query->targets[0]->results;
 						$k = key($res);
 						$multisize = 4;
 						if ( $res && count($res[$k]) > 4 )
@@ -7759,7 +7767,9 @@ class reportico_criteria_column extends reportico_query_column
 		if ( $this->submitted('EXPANDSELECTALL_'.$this->query_name) ) 
 			$selectall = true;
 
-		$res =& $this->lookup_query->targets[0]->results;
+		$res = false;
+		if ( isset($this->lookup_query->targets[0]) )
+			$res =& $this->lookup_query->targets[0]->results;
 		if ( !$res )
 		{
 			$res = array();
