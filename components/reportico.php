@@ -7326,7 +7326,7 @@ class reportico_criteria_column extends reportico_query_column
 	// -----------------------------------------------------------------------------
 	// Function : lookup_ajax
 	// -----------------------------------------------------------------------------
-	function & lookup_ajax($in_is_expanding)
+	function & lookup_ajax($in_is_expanding=false)
 	{
 
 		$text = "";
