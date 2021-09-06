@@ -1491,22 +1491,25 @@ class TCPDF_FONTS {
 	 * @public static
 	 */
 	public static function unichr($c, $unicode=true) {
+		if(!is_numeric($c)) {
+		    $c = hexdec($c);
+		}
 		if (!$unicode) {
-			return chr($c);
+		    return chr($c);
 		} elseif ($c <= 0x7F) {
-			// one byte
-			return chr($c);
+		    // one byte
+		    return chr($c);
 		} elseif ($c <= 0x7FF) {
-			// two bytes
-			return chr(0xC0 | $c >> 6).chr(0x80 | $c & 0x3F);
+		    // two bytes
+		    return chr(0xC0 | $c >> 6).chr(0x80 | $c & 0x3F);
 		} elseif ($c <= 0xFFFF) {
-			// three bytes
-			return chr(0xE0 | $c >> 12).chr(0x80 | $c >> 6 & 0x3F).chr(0x80 | $c & 0x3F);
+		    // three bytes
+		    return chr(0xE0 | $c >> 12).chr(0x80 | $c >> 6 & 0x3F).chr(0x80 | $c & 0x3F);
 		} elseif ($c <= 0x10FFFF) {
-			// four bytes
-			return chr(0xF0 | $c >> 18).chr(0x80 | $c >> 12 & 0x3F).chr(0x80 | $c >> 6 & 0x3F).chr(0x80 | $c & 0x3F);
+		    // four bytes
+		    return chr(0xF0 | $c >> 18).chr(0x80 | $c >> 12 & 0x3F).chr(0x80 | $c >> 6 & 0x3F).chr(0x80 | $c & 0x3F);
 		} else {
-			return '';
+		    return '';
 		}
 	}
 
