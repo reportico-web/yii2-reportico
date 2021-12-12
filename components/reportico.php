@@ -75,7 +75,6 @@ global $g_session_namespace_key;
 $g_session_namespace = false;
 $g_session_namespace_key = "reportico";
 
-
 /**
  * Class reportico_object
  *
@@ -1575,7 +1574,7 @@ class reportico extends reportico_object
 			{
                 // Since using Select2, we find unselected list boxes still send an empty array with a single character which we dont want to include
                 // as a criteria selection
-                if ( !(is_array($_REQUEST[$col->query_name]) && count($col->query_name) == 1 && $_REQUEST[$col->query_name][0] == "" ))
+                if ( !(is_array($_REQUEST[$col->query_name]) && isset($_REQUEST[$col->query_name][0]) && $_REQUEST[$col->query_name][0] == "" ))
 				    $crit_value = $_REQUEST[$crit_name];
 			}
 
@@ -1698,7 +1697,7 @@ class reportico extends reportico_object
             // Fetch the criteria value summary if required for displaying
             // the criteria entry summary at top of report
 			if ( $execute_mode && $execute_mode != "MAINTAIN" && $this->target_show_criteria &&
-                    ( ( array_key_exists($col->query_name, $_REQUEST) && !(is_array($_REQUEST[$col->query_name]) && count($col->query_name) == 1 && $_REQUEST[$col->query_name][0] == "" ))
+                    ( ( array_key_exists($col->query_name, $_REQUEST) && !(is_array($_REQUEST[$col->query_name]) && isset($_REQUEST[$col->query_name][0]) && $_REQUEST[$col->query_name][0] == "" ))
 			        || array_key_exists("MANUAL_".$col->query_name, $_REQUEST) 
 			        || array_key_exists("HIDDEN_".$col->query_name, $_REQUEST) 
                     ) )
@@ -1714,7 +1713,7 @@ class reportico extends reportico_object
 			{
                 // Since using Select2, we find unselected list boxes still send an empty array with a single character which we dont want to include
                 // as a criteria selection
-                if ( !(is_array($_REQUEST[$col->query_name]) && count($col->query_name) == 1 && $_REQUEST[$col->query_name][0] == "") )
+                if ( !(is_array($_REQUEST[$col->query_name]) && isset($_REQUEST[$col->query_name][0]) && $_REQUEST[$col->query_name][0] == "") )
 				    $this->lookup_queries[$col->query_name]->column_value =
 					    $_REQUEST[$col->query_name];
 			}
@@ -2271,12 +2270,26 @@ class reportico extends reportico_object
 
 			if ( $expval ) 
 			{
-				$str = ' AND '.$this->match_column.' LIKE "%'.$expval.'%"';
+				if($this->datasource->_conn_driver == 'pdo_pgsql') //Fix for PostgreSql
+				{
+                    $str = ' AND '.$this->match_column.' ILIKE \'%'.$expval.'%\'';
+				}
+				else
+				{
+					$str = ' AND '.$this->match_column.' LIKE "%'.$expval.'%"';
+                }
 			}
 		}
         else if ( $expval = get_request_item("reportico_criteria_match", false) )
         {
-            $str = ' AND '.$this->match_column.' LIKE "%'.$expval.'%"';
+            if($this->datasource->_conn_driver == 'pdo_pgsql') //Fix for PostgreSql
+            {
+                $str = ' AND '.$this->match_column.' ILIKE \'%'.$expval.'%\'';
+            }
+            else
+            {
+                $str = ' AND '.$this->match_column.' LIKE "%'.$expval.'%"';
+            }
         }
 
 		return $str;
@@ -2425,8 +2438,12 @@ class reportico extends reportico_object
             }
 
 			// Add in any expand criteria
-		    $critwhere .= $this->build_where_extra_list($in_is_expanding, $criteria_name);
-
+            // Fix - Ajax lookups were done for every 'Database Lookup' criteria
+            $req_item = get_request_item("reportico_criteria");
+            if (empty($req_item) ||
+                $criteria_name == $req_item){
+                $critwhere .= $this->build_where_extra_list($in_is_expanding, $criteria_name);
+            }
             // If user has "Main query column" criteria then parse sql to find
             // where to insert them
             if ( $critwhere )
@@ -6552,7 +6569,9 @@ class reportico_criteria_column extends reportico_query_column
         }
 
         $txt = "";
-		$res =& $this->lookup_query->targets[0]->results;
+		$res = false;
+		if ( isset($this->lookup_query->targets[0]) )
+			$res =& $this->lookup_query->targets[0]->results;
 		if ( !$res )
 		{
 			$res = array();
@@ -7307,7 +7326,7 @@ class reportico_criteria_column extends reportico_query_column
 	// -----------------------------------------------------------------------------
 	// Function : lookup_ajax
 	// -----------------------------------------------------------------------------
-	function & lookup_ajax($in_is_expanding)
+	function & lookup_ajax($in_is_expanding=false)
 	{
 
 		$text = "";
@@ -7399,8 +7418,10 @@ class reportico_criteria_column extends reportico_query_column
 
 				case "MULTI":
 						$multisize = 12;
-						$res =& $this->lookup_query->targets[0]->results;
-						$k = key($res);
+						$res = false;
+						if ( isset($this->lookup_query->targets[0]) )
+							$res =& $this->lookup_query->targets[0]->results;
+							$k = key($res);
 						$multisize = 4;
 						if ( $res && count($res[$k]) > 4 )
 							$multisize = count($res[$k]);
@@ -7446,7 +7467,9 @@ class reportico_criteria_column extends reportico_query_column
 		if ( $this->submitted('EXPANDSELECTALL_'.$this->query_name) ) 
 			$selectall = true;
 
-		$res =& $this->lookup_query->targets[0]->results;
+		$res = false;
+		if ( isset($this->lookup_query->targets[0]) )
+			$res =& $this->lookup_query->targets[0]->results;
 		if ( !$res )
 		{
 			$res = array();
@@ -7695,7 +7718,9 @@ class reportico_criteria_column extends reportico_query_column
 
 				case "MULTI":
 						$multisize = 12;
-						$res =& $this->lookup_query->targets[0]->results;
+						$res = false;
+						if ( isset($this->lookup_query->targets[0]) )
+							$res =& $this->lookup_query->targets[0]->results;
 						$k = key($res);
 						$multisize = 4;
 						if ( $res && count($res[$k]) > 4 )
@@ -7742,7 +7767,9 @@ class reportico_criteria_column extends reportico_query_column
 		if ( $this->submitted('EXPANDSELECTALL_'.$this->query_name) ) 
 			$selectall = true;
 
-		$res =& $this->lookup_query->targets[0]->results;
+		$res = false;
+		if ( isset($this->lookup_query->targets[0]) )
+			$res =& $this->lookup_query->targets[0]->results;
 		if ( !$res )
 		{
 			$res = array();
@@ -7755,6 +7782,7 @@ class reportico_criteria_column extends reportico_query_column
 		for ($i = 0; $i < count($res[$k]); $i++ )
 		{
 			$line =&$res[$i];
+
 			foreach ( $this->lookup_query->columns as $ky => $col )
 			{
 				if ( $col->lookup_display_flag )
@@ -8168,6 +8196,13 @@ class reportico_criteria_column extends reportico_query_column
 						if ( is_string($col) )
 						{
 							$col = trim($col);
+
+                            //Escape single quote
+                            if($this->datasource->_conn_driver == 'pdo_pgsql'){
+                                $conn  =& $this->datasource->ado_connection;
+                                $col = $conn->qstr($col);
+                                if ($add_del) $col = trim($col, $del);
+                            }
 						}
 
 						if ( $col == "(ALL)" )

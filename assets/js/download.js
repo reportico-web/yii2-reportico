@@ -18,11 +18,11 @@
 		module.exports = factory();
 	} else {
 		// Browser globals (root is window)
-		root.download = factory();
+		root.rp_download = factory();
   }
 }(this, function () {
 
-	return function download(data, strFileName, strMimeType) {
+	return function rp_download(data, strFileName, strMimeType) {
 
 		var self = window, // this script is only for browsers anyway...
 			defaultMime = "application/octet-stream", // this default mime also triggers iframe downloads
@@ -52,7 +52,7 @@
         		ajax.open( "GET", url, true);
         		ajax.responseType = 'blob';
         		ajax.onload= function(e){ 
-				  download(e.target.response, fileName, defaultMime);
+				  rp_download(e.target.response, fileName, defaultMime);
 				};
         		setTimeout(function(){ ajax.send();}, 0); // allows setting custom ajax headers using the return:
 			    return ajax;

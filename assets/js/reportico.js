@@ -715,7 +715,7 @@ function ajaxFileDownload(url, data, expandpanel, reportico_container) {
             var saveto = request.getResponseHeader('Content-Disposition');
             saveto = saveto.replace(/attachment;filename=/,"");
             objurl = "data:application/pdf;base64," + data;
-            download(objurl, saveto, "application/pdf");
+            rp_download(objurl, saveto, "application/pdf");
         }
 
         if ( contenttype == "application/octet-stream" )
@@ -723,7 +723,7 @@ function ajaxFileDownload(url, data, expandpanel, reportico_container) {
             var saveto = request.getResponseHeader('Content-Disposition');
             saveto = saveto.replace(/attachment;filename=/,"");
             objurl = "data:application/octet-stream;base64," + data;
-            download(objurl, saveto, "application/pdf");
+            rp_download(objurl, saveto, "application/pdf");
         }
       },
        error: function(xhr, desc, err) {

@@ -33,6 +33,8 @@
  */
 require_once("reportico_report.php");
 
+use Zend\Stdlib\ArrayObject;
+
 class reportico_report_csv extends reportico_report
 {
 	var	$abs_top_margin;
@@ -103,7 +105,8 @@ class reportico_report_csv extends reportico_report
 		$padstring = ucwords(strtolower($padstring));
 		$padstring = sw_translate($padstring);
 
-		$this->text .= '"'.$padstring.'"'.",";
+		//$this->text .= '"'.$padstring.'"'.",";
+        $this->text .= '"'.$padstring.'"'.";";
 	}
 
 	function format_column(& $column_item)
@@ -122,7 +125,20 @@ class reportico_report_csv extends reportico_report
 
         // Handle double quotes by changing " to ""
         $output = str_replace("\"", "\"\"", $output);
-        $this->text .= "\"".$output."\",";
+
+        //Ettore - We don't add double quotes for numeric values
+		$pattern = '/\d+[.]\d{2}\s*[€]/'; //1250.45€
+        if(is_numeric($output)){
+            $output = str_replace('.', ',', $output);
+            $this->text .= $output.";";
+		}
+		else if (preg_match($pattern, $output, $matches)){  //Se è una stringa terminante con il segno dell'euro rimuoviamo le virgolette ed il simbolo
+            $output = str_replace('.', ',', $output);
+            $output = str_replace('€', '', $output);
+            $this->text .= $output.";";
+		}
+		else
+        	$this->text .= "\"".$output."\";";
 
 	}
 
@@ -151,7 +167,7 @@ class reportico_report_csv extends reportico_report
 				$qn = get_query_column($col["GroupHeaderColumn"]->query_name, $this->query->columns ) ;
 				$padstring = $qn->column_value;
 				$this->text .= "\"".$padstring."\"";
-				$this->text .= ",";
+				$this->text .= ";";
 			}
 		}
 				
@@ -179,7 +195,7 @@ class reportico_report_csv extends reportico_report
 	function format_criteria_selection($label, $value)
 	{
 		$this->text .= "\"".$label."\"";
-		$this->text .= ",";
+		$this->text .= ";";
 		$this->text .= "\"".$value."\"";
 		$this->text .= "\n";
 	}
@@ -209,7 +225,7 @@ class reportico_report_csv extends reportico_report
 				$tempstring = str_replace("_", " ", $col->query_name);
 				$tempstring = ucwords(strtolower($tempstring));
 				$this->text .= "\"".sw_translate($col->derive_attribute("column_title",  $tempstring))."\"";
-				$this->text .= ",";
+				$this->text .= ";";
 			}
 		}
 				
@@ -250,7 +266,7 @@ class reportico_report_csv extends reportico_report
 		{
 			for ($i = 0; $i < count($group->headers); $i++ )
 			{
-				$this->text .= ",";
+				$this->text .= ";";
 			}
 		}
 	}
@@ -275,7 +291,7 @@ class reportico_report_csv extends reportico_report
             else
 			    $this->text .= "\"".$group_label.":".$padstring."\"";
 		}
-		$this->text .= ",";
+		$this->text .= ";";
 	}
 
 	function end_line()
